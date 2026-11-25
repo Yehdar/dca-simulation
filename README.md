@@ -1,15 +1,16 @@
 # Biweekly ETF Investor
 
-A lightweight Python/Tkinter desktop application that uses real historical data from Yahoo Finance to visualize investing in Canadian-listed ETFs every 14 calendar days.
+A dark-mode Python/Tkinter desktop application for historical Canadian ETF backtesting using real Yahoo Finance data. It compares VFV, VDY, QQC, and saved custom portfolios across consistent contribution periods.
 
 ## Features
 
-- VFV, VDY, and QQC scenarios, independently funded per ETF.
-- Fractional shares, optional initial lump sum, dividend reinvestment, and an optional common start date.
-- Cached historical CSV data in `.market_cache/` to reduce repeat downloads.
-- Background data fetching so the UI stays responsive.
-- Portfolio and contribution/growth charts with hover details.
-- XIRR money-weighted return, contribution count, duration, dividend cash tracking, and CSV summary export.
+- Portfolio Growth tab with biweekly DCA, initial investment, common-period mode, contribution/growth charts, and three dividend modes: DRIP (`Adj Close` without manual dividend additions), cash distributions tracked separately using `Close`, or price-only `Close`.
+- Rolling Returns tab for 1, 2, 3, 5, 10, 15, and 20-year windows, with annualized-return charts, histograms, box plots, and summary statistics.
+- Risk Analysis tab with cash-flow-adjusted maximum drawdown, drawdown dates, recovery status, annualized volatility, calendar-year extremes, Sharpe ratio, and risk/return scatter plot.
+- Portfolio Builder with editable allocations, predefined templates, saved JSON configurations, and no/new-contribution/quarterly/annual rebalancing.
+- Sortable Performance Comparison table and CSV export containing XIRR, time-weighted return, simple return, growth, cash dividends, drawdown, volatility, and Sharpe ratio.
+- Local CSV caching in `.market_cache/`; contribution amount, dividend mode, and portfolio changes reuse cached data without another API request.
+- Background downloads and calculations keep Tkinter responsive.
 
 ## Install and run
 
@@ -23,12 +24,20 @@ python -m pip install -r requirements.txt
 python main.py
 ```
 
-Tkinter is included with most Python installations. On some Linux distributions it is provided by a separate system package such as `python3-tk`.
+Tkinter is included with most Python installations. Some Linux distributions provide it separately as `python3-tk`.
 
-## Notes on the model
+## Tests
 
-Each selected ETF receives the full biweekly amount; the amount is not split between ETFs. Scheduled investments happen every 14 calendar days and are moved forward to the next available trading day. If a selected start year predates an ETF's available history, that ETF begins at its earliest downloaded trading day and the UI shows that period in its card. The common start date option instead starts every selected ETF on the latest of their available starting dates.
+The deterministic calculation tests use synthetic data only; the application itself never mocks historical market data.
 
-With dividend reinvestment enabled, adjusted close is used to model total returns. With it disabled, close prices are used and distributions are accumulated as cash. The app assumes no taxes or commissions and does not fabricate or extrapolate prices before inception.
+```bash
+python -m unittest discover -s tests -v
+```
 
-Historical performance does not guarantee future returns. Yahoo Finance data can be delayed, revised, or temporarily unavailable, so use this as an educational visualization rather than financial advice.
+## Important interpretation notes
+
+Common-period mode is enabled by default. It uses the latest required start date, the earliest common end date, and one shared contribution schedule. If the requested period exceeds the overlapping history, the status bar reports the shortened period. Turning it off allows each investment to use its own history, but absolute values are then not directly comparable.
+
+Rolling windows overlap, so they are not independent observations. A percentage of profitable historical windows is descriptive of this sample, not a guaranteed future probability. Historical performance does not guarantee future returns.
+
+The simulations assume fractional shares, zero commissions, zero taxes, and no slippage. Rebalancing is likewise modeled without transaction costs or tax consequences. Yahoo Finance data can be delayed, revised, or temporarily unavailable; this tool is educational and is not financial advice.
